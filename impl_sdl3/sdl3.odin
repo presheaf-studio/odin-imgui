@@ -1,6 +1,6 @@
 package impl_sdl3
 
-import sdl "vendor:sdl3"
+import "studio:vendor/sdl"
 
 when ODIN_OS == .Windows {
     when ODIN_ARCH == .amd64 {
