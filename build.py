@@ -115,7 +115,7 @@ backend_deps = {
 compile_debug = False
 
 # @CONFIGURE:
-build_wasm = False
+build_wasm = True
 
 # @CONFIGURE:
 build_imgui_internal = True
@@ -249,7 +249,6 @@ def ensure_checked_out_with_commit(dir: str, repo: str, wanted_commit: str):
 
 def get_platform_imgui_lib_name() -> str:
     """Returns imgui binary name for system/processor"""
-
     system = platform.system()
 
     processor = None
@@ -301,11 +300,13 @@ def compile(
             "-fno-threadsafe-statics",
             "-nostdlib++",
             "-fno-use-cxa-atexit",
-        ]
+            "-Os",
+            "--sysroot=/opt/homebrew/Cellar/emscripten/4.0.20/libexec/cache/sysroot",
+        ]  # + exec(["em++", "--cflags"], "").split(" ")
 
-        assertx(has_tool("odin"), "odin not found!")
-        root = exec(["odin", "root"], "Get odin root")
-        compile_flags += ["--sysroot=" + root + "vendor/libc"]
+        # assertx(has_tool("odin"), "odin not found!")
+        # root = exec(["odin", "root"], "Get odin root")
+        # compile_flags += ["--sysroot=" + root + "vendor/libc"]
     else:
         compile_flags = platform_select(
             {
@@ -326,7 +327,7 @@ def compile(
         compile_flags += platform_select(
             {"windows": ["/Od", "/Z7"], "linux, darwin": ["-g", "-O0"]}
         )
-    else:
+    elif not wasm:
         compile_flags += platform_select({"windows": ["/O2"], "linux, darwin": ["-O3"]})
 
     if not wasm:
@@ -393,10 +394,43 @@ def compile(
 
     # cl.exe, *in particular*, won't work without running vcvarsall first, even if cl.exe is in the path.
     # See did_re_execute
+    # if wasm:
+    #     exec(
+    #         ["em++"]
+    #         + compile_flags
+    #         + exec(["em++", "--cflags"], "").split(" ")
+    #         + [
+    #             "-s",
+    #             "USE_SDL=3",
+    #             "-s",
+    #             "DISABLE_EXCEPTION_CATCHING=1",
+    #             "-s",
+    #             "WASM=1",
+    #             "-s",
+    #             "ALLOW_MEMORY_GROWTH=1",
+    #             "-s",
+    #             "EXIT_RUNTIME=1",
+    #             "-s",
+    #             "ASSERTIONS=1",
+    #         ]
+    #         # +["-I/opt/homebrew/Cellar/emscripten/4.0.20/libexec/system/include"]
+    #         # + ["-I../imgui"]
+    #         + ["-c"]
+    #         + list(map(str, all_sources)),
+    #         "Compiling sources",
+    #     )
     if platform_win32_like:
         exec_vcvars(["cl"] + compile_flags + ["/c"] + all_sources, "Compiling sources")
+    elif platform.system() == "Darwin":
+        exec(
+            ["/opt/homebrew/opt/llvm/bin/clang++"]
+            + compile_flags
+            + ["-c"]
+            + all_sources,
+            "Compiling sources",
+        )
     elif platform_unix_like:
-        exec(["clang"] + compile_flags + ["-c"] + all_sources, "Compiling sources")
+        exec(["clang++"] + compile_flags + ["-c"] + all_sources, "Compiling sources")
 
     os.chdir("..")
 
@@ -406,6 +440,16 @@ def compile(
         shutil.rmtree(path="wasm", ignore_errors=True)
         os.mkdir("wasm")
         copy("temp", all_objects, "wasm")
+        if platform_win32_like:
+            exec(
+                ["lib", "/OUT:" + "imgui_wasm.a"] + map_to_folder(all_objects, "wasm"),
+                "Making library from objects",
+            )
+        elif platform_unix_like:
+            exec(
+                ["ar", "r", "imgui_wasm.a"] + map_to_folder(all_objects, "wasm"),
+                "Making library from objects",
+            )
     elif platform_win32_like:
         exec(
             ["lib", "/OUT:" + dest_binary] + map_to_folder(all_objects, "temp"),
