@@ -232,11 +232,11 @@ RenderDrawData :: proc(draw_data: ^imgui.DrawData) {
     gl.BlendEquationSeparate(last_blend_equation_rgb, last_blend_equation_alpha)
     gl.BlendFuncSeparate(last_blend_src_rgb, last_blend_dst_rgb, last_blend_src_alpha, last_blend_dst_alpha)
 
-    if last_enable_blend {gl.Enable(gl.BLEND)} else {gl.Disable(gl.BLEND)}
-    if last_enable_cull_face {gl.Enable(gl.CULL_FACE)} else {gl.Disable(gl.CULL_FACE)}
-    if last_enable_depth_test {gl.Enable(gl.DEPTH_TEST)} else {gl.Disable(gl.DEPTH_TEST)}
-    if last_enable_stencil_test {gl.Enable(gl.STENCIL_TEST)} else {gl.Disable(gl.STENCIL_TEST)}
-    if last_enable_scissor_test {gl.Enable(gl.SCISSOR_TEST)} else {gl.Disable(gl.SCISSOR_TEST)}
+    if last_enable_blend { gl.Enable(gl.BLEND) } else { gl.Disable(gl.BLEND) }
+    if last_enable_cull_face { gl.Enable(gl.CULL_FACE) } else { gl.Disable(gl.CULL_FACE) }
+    if last_enable_depth_test { gl.Enable(gl.DEPTH_TEST) } else { gl.Disable(gl.DEPTH_TEST) }
+    if last_enable_stencil_test { gl.Enable(gl.STENCIL_TEST) } else { gl.Disable(gl.STENCIL_TEST) }
+    if last_enable_scissor_test { gl.Enable(gl.SCISSOR_TEST) } else { gl.Disable(gl.SCISSOR_TEST) }
 
     gl.Viewport(expand_values(last_viewport))
     gl.Scissor(expand_values(last_scissor_box))
@@ -325,8 +325,8 @@ CreateDeviceObjects :: proc() {
 @(private)
 DestroyDeviceObjects :: proc() {
     bd := GetBackendData()
-    if bd.VboHandle != 0 {gl.DeleteBuffer(bd.VboHandle); bd.VboHandle = 0}
-    if bd.ElementsHandle != 0 {gl.DeleteBuffer(bd.ElementsHandle); bd.ElementsHandle = 0}
-    if bd.ShaderHandle != 0 {gl.DeleteProgram(bd.ShaderHandle); bd.ShaderHandle = 0}
+    if bd.VboHandle != 0 { gl.DeleteBuffer(bd.VboHandle); bd.VboHandle = 0 }
+    if bd.ElementsHandle != 0 { gl.DeleteBuffer(bd.ElementsHandle); bd.ElementsHandle = 0 }
+    if bd.ShaderHandle != 0 { gl.DeleteProgram(bd.ShaderHandle); bd.ShaderHandle = 0 }
     DestroyFontsTexture()
 }

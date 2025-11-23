@@ -471,7 +471,7 @@ when ODIN_ARCH == .wasm32 || ODIN_ARCH == .wasm64p32 {
 def write_main_file_header(file: typing.IO):
     write_line(
         file,
-        """CHECKVERSION :: proc() {
+        """CHECKVERSION :: proc "contextless" () {
 	DebugCheckVersionAndDataLayout(VERSION, size_of(IO), size_of(Style), size_of(Vec2), size_of(Vec4), size_of(DrawVert), size_of(DrawIdx))
 }""",
     )
